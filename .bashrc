@@ -1,4 +1,4 @@
-alias ls='ls --color=auto -ACF'
+alias ls='ls --color=auto -CF'
 alias ll='ls --color=auto -alF'
 alias grep='grep --color=auto'
 alias mkdir='mkdir -pv'
