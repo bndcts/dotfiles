@@ -35,3 +35,8 @@ set laststatus=2
 set listchars=tab:▸\ ,eol:¬
 set showmode
 set showcmd
+
+if has("autocmd")
+  au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
+    \| exe "normal! g'\"" | endif
+endif
