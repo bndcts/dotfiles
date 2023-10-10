@@ -17,6 +17,9 @@ function install {
 install tmux
 install vim
 
+# oh my zsh
+sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
+
 # Fun stuff
 #install figlet
 #install lolcat
