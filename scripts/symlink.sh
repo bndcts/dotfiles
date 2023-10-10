@@ -31,3 +31,4 @@ function linkDotfile {
 
 linkDotfile .vimrc
 linkDotfile .bashrc
+linkDotfile .zshrc
