@@ -1,0 +1,5 @@
+alias ls='ls --color=auto -CF'
+alias ll='ls --color=auto -aCF'
+alias grep='grep --color=auto'
+alias mkdir='mkdir -pv'
+alias mv='mv -v'
