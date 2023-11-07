@@ -7,7 +7,7 @@ function install {
 
   if [ $? -ne 0 ]; then
     echo "Installing: ${1}..."
-    apt install -y $1
+    sudo apt install -y $1
   else
     echo "Already installed: ${1}"
   fi
@@ -16,6 +16,7 @@ function install {
 # Basics
 install tmux
 install vim
+install zsh
 
 # oh my zsh
 sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
