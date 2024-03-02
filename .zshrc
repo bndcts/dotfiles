@@ -4,6 +4,7 @@ ZSH_THEME="robbyrussell"
 
 HIST_STAMPS="yyyy-mm-dd"
 
+
 # env variables
 export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_CONFIG_HOME="${HOME}/.config"
@@ -38,6 +39,7 @@ plugins=(git
 source $ZSH/oh-my-zsh.sh
 
 ## Aliases
+alias lg='lazygit'
 alias ls='ls --color=auto -CF'
 alias ll='ls --color=auto -laCF'
 alias grep='grep --color=auto'
@@ -55,3 +57,6 @@ else
    export EDITOR='nvim'
 fi
 
+
+# Created by `pipx` on 2024-03-02 16:07:56
+export PATH="$PATH:/Users/benedikt/.local/bin"

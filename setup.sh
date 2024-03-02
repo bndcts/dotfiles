@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 DOTFILES="$(pwd)"
 
 # Default XDG paths
@@ -15,8 +14,10 @@ mkdir -p "$XDG_DATA_HOME"
 mkdir -p "$XDG_STATE_HOME"
 
 link_config_files () {
-   ln -sf "$XDG_CONFIG_HOME/tmux" "./config/tmux"
-   ln -sf "$XDG_CONFIG_HOME/nvim" "./config/nvim"
+    echo $XDG_CONFIG_HOME
+    ln -sf "$DOTFILES/config/tmux" "$XDG_CONFIG_HOME"
+    ln -sf "$DOTFILES/config/nvim" "$XDG_CONFIG_HOME"
+    ln -sf "$DOTFILES/config/lazygit" $XDG_CONFIG_HOME
 }
 
 linkDotfile () {
