@@ -68,6 +68,8 @@ setup_shell() {
 
    ## catppuccin theme
    git clone https://github.com/catppuccin/zsh-syntax-highlighting.git $XDG_DATA_HOME/catpuccin/syntax-hightlighting
+
+   ## tmux plugin
 }
 
 setup_macos() {
@@ -77,7 +79,7 @@ setup_macos() {
         echo "Finder: show all filename extensions"
         defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 
-        echo "show hidden files by default"
+        echo "shw hidden files by default"
         defaults write com.apple.Finder AppleShowAllFiles -bool false
 
         echo "only use UTF-8 in Terminal.app"
