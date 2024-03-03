@@ -14,16 +14,16 @@ mkdir -p "$XDG_DATA_HOME"
 mkdir -p "$XDG_STATE_HOME"
 
 link_config_files () {
-    echo $XDG_CONFIG_HOME
-    ln -sf "$DOTFILES/config/tmux" "$XDG_CONFIG_HOME"
-    ln -sf "$DOTFILES/config/nvim" "$XDG_CONFIG_HOME"
-    ln -sf "$DOTFILES/config/lazygit" $XDG_CONFIG_HOME
+    linkDotfile tmux
+    linkDotfile nvim
+    linkDotfile lazygit
+    linkDotfile git
 }
+
 
 linkDotfile () {
   dest="${HOME}/.config/${1}"
-  dateStr=$(date +%Y-%m-%d-%H%M)
-
+  dotfilesDir="$DOTFILES/config"
   if [ -h "{$dest}" ]; then
     # Existing symlink 
     echo "Removing existing symlink: ${dest}"
@@ -42,6 +42,20 @@ linkDotfile () {
 
   echo "Creating new symlink: ${dest}"
   ln -s ${dotfilesDir}/${1} ${dest}
+}
+
+setup_git() {
+    defaultName=$(git config user.name)
+    defaultEmail=$(git config user.email)
+    defaultGithub=$(git config github.user)
+
+    read -rp "Name [$defaultName] " name
+    read -rp "Email [$defaultEmail] " email
+    read -rp "Github username [$defaultGithub] " github
+
+    git config -f ~/.gitconfig-local user.name "${name:-$defaultName}"
+    git config -f ~/.gitconfig-local user.email "${email:-$defaultEmail}"
+    git config -f ~/.gitconfig-local github.user "${github:-$defaultGithub}"
 }
 
 link_zshrc() {
@@ -140,11 +154,14 @@ case "$1" in
         setup_macos
         ;;
     homebrew)
-	setup_homebrew
-	;;
+	      setup_homebrew
+	      ;;
     link)
-	link_config_files
-	;;	
+	      link_config_files
+	      ;;
+    git)
+      setup_git
+        ;;
     all)
         setup_shell
         setup_macos

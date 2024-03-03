@@ -1,0 +1,15 @@
+# This is Git's per-user configuration file.
+[init]
+    defaultBranch = main
+[include]
+    # A local gitconfig, outside of version control.
+    # If the file doesn't exist it is silently ignored
+    path = ~/.gitconfig-local
+[user]
+	name = Benedikt Schwankner
+	email = benedikt_1212@outlook.de
+# Please adapt and uncomment the following lines:
+#	name = Benedikt
+#	email = benedikt_1212@outlook.de
+[credential]
+	helper = osxkeychain
