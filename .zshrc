@@ -3,7 +3,8 @@ export ZSH="$HOME/.local/share/oh-my-zsh"
 ZSH_THEME="robbyrussell"
 
 HIST_STAMPS="yyyy-mm-dd"
-
+export PATH="$HOME/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
 
 # env variables
 export XDG_CACHE_HOME="$HOME/.cache"
@@ -41,7 +42,7 @@ source $ZSH/oh-my-zsh.sh
 ## Aliases
 alias lg='lazygit'
 alias ls='ls --color=auto -CF'
-alias ll='ls --color=auto -laCF'
+alias ll='ls -la'
 alias grep='grep --color=auto'
 alias mkdir='mkdir -pv'
 alias mv='mv -v'

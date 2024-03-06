@@ -120,8 +120,14 @@ setup_macos() {
         echo "Show Status bar in Finder"
         defaults write com.apple.finder ShowStatusBar -bool true
 
-	echo "Set standard finder view to list"
-	defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+	      echo "Set standard finder view to list"
+	      defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+
+        echo "Set a blazingly fast keyboard repeat rate"
+        defaults write NSGlobalDomain KeyRepeat -int 1
+
+        echo "Set a shorter Delay until key repeat"
+        defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
         echo "Kill affected applications"
 
