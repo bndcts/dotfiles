@@ -1,3 +1,4 @@
+export GITLAB_HOME=/Users/Benedikt.Schwanker/Documents/dev/docker/gitlab
 export ZSH="$HOME/.local/share/oh-my-zsh"
 
 ZSH_THEME="robbyrussell"
@@ -24,7 +25,7 @@ bindkey '^[[5C' end-of-line                         # [Alt-right] - end of line
 bindkey '^?' backward-delete-char                   # [Backspace] - delete backward
 
 ## THEMES
-source /Users/benedikt/.local/share/catpuccin/syntax-hightlighting/themes/catppuccin_frappe-zsh-syntax-highlighting.zsh
+source $HOME/.local/share/catpuccin/syntax-hightlighting/themes/catppuccin_frappe-zsh-syntax-highlighting.zsh
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#414559,bg:#303446,spinner:#f2d5cf,hl:#e78284 \
 --color=fg:#c6d0f5,header:#e78284,info:#ca9ee6,pointer:#f2d5cf \
@@ -46,7 +47,6 @@ alias ll='ls -la'
 alias grep='grep --color=auto'
 alias mkdir='mkdir -pv'
 alias mv='mv -v'
-alias vim='nvim'
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
@@ -58,6 +58,3 @@ else
    export EDITOR='nvim'
 fi
 
-
-# Created by `pipx` on 2024-03-02 16:07:56
-export PATH="$PATH:/Users/benedikt/.local/bin"
