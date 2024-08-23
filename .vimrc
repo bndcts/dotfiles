@@ -38,13 +38,18 @@ Plug 'kshenoy/vim-signature'
 " context.vim (sticky headers)
 Plug 'wellle/context.vim'
 
+" Catppuccin theme
+Plug 'catppuccin/vim', { 'as': 'catppuccin' }
+
 call plug#end()
 
 set nocompatible " be iMproved
 filetype plugin indent on
 syntax on
 
-colorscheme industry
+let g:airline_theme = 'catppuccin_frappe'
+
+
 " transparent background (uses terminal background)
 hi Normal guibg=NONE ctermbg=NONE
 
@@ -61,7 +66,6 @@ set t_vb=
 set linebreak " wrap lines based on words
 
 set colorcolumn=120 " vertical column
-highlight ColorColumn ctermbg=238
 
 " NERDTree customizations
 let NERDTreeMinimalUI = 1
@@ -73,18 +77,20 @@ hi SignColumn ctermbg=NONE
 hi SignatureMarkText ctermbg=NONE
 
 " Show files in buffer in top airline
-let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#enabled = 0
 let g:airline#extensions#tabline#fnamemod = ':t'
 " Show ale linting in airline
 let g:airline#extensions#ale#enabled = 1
+let g:airline#extensions#buffers#enabled = 0
+
 
 " vim-gitgutter colors
-let g:gitgutter_override_sign_column_highlight = 0
-highlight clear SignColumn
-highlight GitGutterAdd ctermfg=2
-highlight GitGutterChange ctermfg=3
-highlight GitGutterDelete ctermfg=1
-highlight GitGutterChangeDelete ctermfg=4
+"let g:gitgutter_override_sign_column_highlight = 0
+"highlight clear SignColumn
+"highlight GitGutterAdd ctermfg=2
+"highlight GitGutterChange ctermfg=3
+"highlight GitGutterDelete ctermfg=1
+"highlight GitGutterChangeDelete ctermfg=4
 
 " open file in new tab when using fzf
 let g:fzf_action = {
@@ -94,12 +100,12 @@ let g:fzf_action = {
 " ale customizations
 let g:ale_sign_error = '✘'
 let g:ale_sign_warning = '▲'
-highlight ALEErrorSign ctermbg=NONE ctermfg=red
-highlight ALEWarningSign ctermbg=NONE ctermfg=yellow
+"highlight ALEErrorSign ctermbg=NONE ctermfg=red
+"highlight ALEWarningSign ctermbg=NONE ctermfg=yellow
 
 " coc customizations
-highlight Pmenu ctermbg=233 ctermfg=gray
-highlight PmenuSel ctermbg=darkgray ctermfg=white
+"highlight Pmenu ctermbg=233 ctermfg=gray
+"highlight PmenuSel ctermbg=darkgray ctermfg=white
 
 " remove whitespace when saving files
 autocmd BufWritePre * :%s/\s\+$//e

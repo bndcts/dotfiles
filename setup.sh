@@ -18,6 +18,7 @@ link_config_files () {
     #linkDotfile nvim
     linkDotfile lazygit
     linkDotfile git
+    linkDotfile wezterm
 }
 
 
