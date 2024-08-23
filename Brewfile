@@ -9,11 +9,8 @@ if OS.mac?
 end
 
 tap "homebrew/bundle"
-tap "homebrew/cask-font"
-cask "font-jetbrains-mono-nerd-font"
 # packages
 brew "git" # Git version control (latest version)
-brew "neovim" # A better vim
 brew "tmux" # terminal multiplexer
 brew "vim" # Vim (latest)
 brew "wdiff" # word differences in text files
