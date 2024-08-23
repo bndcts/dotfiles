@@ -15,7 +15,7 @@ mkdir -p "$XDG_STATE_HOME"
 
 link_config_files () {
     linkDotfile tmux
-    linkDotfile nvim
+    #linkDotfile nvim
     linkDotfile lazygit
     linkDotfile git
 }
@@ -25,9 +25,9 @@ linkDotfile () {
   dest="${HOME}/.config/${1}"
   dotfilesDir="$DOTFILES/config"
   if [ -h "{$dest}" ]; then
-    # Existing symlink 
+    # Existing symlink
     echo "Removing existing symlink: ${dest}"
-    rm ${dest} 
+    rm ${dest}
 
   elif [ -f "${dest}" ]; then
     # Existing file
@@ -74,6 +74,13 @@ link_zshrc() {
     ln -s "$source_file" "$destination_file"
 }
 
+link_vim() {
+    mkdir -p $XDG_DATA_HOME/backup && [ ! -f ~/.vimrc ] || mv ~/.vimrc $XDG_DATA_HOME/backup
+    mkdir -p $XDG_DATA_HOME/backup && [ ! -f ~/.vim ] || mv ~/.vim $XDG_DATA_HOME/backup
+    ln -s $DOTFILES/.vimrc ~/
+    ln -s $DOTFILES/.vim ~/
+}
+
 setup_shell() {
     git clone https://github.com/ohmyzsh/ohmyzsh.git $XDG_DATA_HOME/oh-my-zsh
     link_zshrc
@@ -83,7 +90,6 @@ setup_shell() {
    ## catppuccin theme
    git clone https://github.com/catppuccin/zsh-syntax-highlighting.git $XDG_DATA_HOME/catpuccin/syntax-hightlighting
 
-   ## tmux plugin
 }
 
 setup_macos() {
@@ -120,8 +126,8 @@ setup_macos() {
         echo "Show Status bar in Finder"
         defaults write com.apple.finder ShowStatusBar -bool true
 
-	      echo "Set standard finder view to list"
-	      defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+	    echo "Set standard finder view to list"
+	    defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
 
         echo "Set a blazingly fast keyboard repeat rate"
         defaults write NSGlobalDomain KeyRepeat -int 1
@@ -168,9 +174,11 @@ case "$1" in
     git)
       setup_git
         ;;
-    all)
+    all-mac)
         setup_shell
         setup_macos
+        link_vim
+        link_config_files
         ;;
     *)
         echo -e $"\nUsage: $(basename "$0") {backup|link|git|homebrew|shell|terminfo|macos|all}\n"
