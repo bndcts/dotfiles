@@ -1,49 +1,106 @@
 #!/usr/bin/env bash
 
-DOTFILES="$(pwd)"
+########################################
+# Repo bootstrap (clone dotfiles)
+########################################
 
-# Default XDG paths
+REPO_URL="git@github.com:bndcts/dotfiles.git"
+
+# Get the directory where the script is executed (current working directory)
+EXEC_DIR="$(pwd)"
+
+# Default DOTFILES = directory of this script (works if you run it from inside the repo)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES="$SCRIPT_DIR"
+
+# If this script is NOT inside a git repo but REPO_URL is set, clone your dotfiles
+if [ ! -d "$DOTFILES/.git" ] && [ -n "$REPO_URL" ]; then
+  echo "[INFO] No git repo detected at ${DOTFILES}."
+  CLONE_DIR="$EXEC_DIR/dotfiles"
+  if [ -d "$CLONE_DIR/.git" ]; then
+    echo "[INFO] Found existing dotfiles repo at ${CLONE_DIR}, using that."
+    DOTFILES="$CLONE_DIR"
+  else
+    echo "[INFO] Cloning dotfiles repo from ${REPO_URL} into ${CLONE_DIR}..."
+    git clone "$REPO_URL" "$CLONE_DIR"
+    DOTFILES="$CLONE_DIR"
+  fi
+fi
+
+echo "[INFO] Using DOTFILES directory: ${DOTFILES}"
+
+########################################
+# XDG paths
+########################################
+
 XDG_CACHE_HOME="$HOME/.cache"
 XDG_CONFIG_HOME="${HOME}/.config"
 XDG_DATA_HOME="${HOME}/.local/share"
 XDG_STATE_HOME="${HOME}/.local/state"
 
-mkdir -p "$XDG_CACHE_HOME"
-mkdir -p "$XDG_CONFIG_HOME"
-mkdir -p "$XDG_DATA_HOME"
-mkdir -p "$XDG_STATE_HOME"
+mkdir -p "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME"
+
+########################################
+# Helper functions
+########################################
+
+title() {
+  printf "\n\033[1m%s\033[0m\n" "$*"
+}
+
+info() {
+  printf "[INFO] %s\n" "$*"
+}
+
+warning() {
+  printf "[WARN] %s\n" "$*"
+}
+
+########################################
+# Linking dotfiles
+########################################
 
 link_config_files () {
     linkDotfile tmux
-    #linkDotfile nvim
     linkDotfile lazygit
     linkDotfile git
-    linkDotfile wezterm
 }
-
 
 linkDotfile () {
   dest="${HOME}/.config/${1}"
   dotfilesDir="$DOTFILES/config"
-  if [ -h "{$dest}" ]; then
-    # Existing symlink
-    echo "Removing existing symlink: ${dest}"
-    rm ${dest}
+  source="${dotfilesDir}/${1}"
 
-  elif [ -f "${dest}" ]; then
-    # Existing file
-    echo "Backing up existing file: ${dest} into ${XDG_DATA_HOME}"
-    mkdir -p "${XDG_DATA_HOME}/backup" && mv "${dest}" "${XDG_DATA_HOME}/backup"
+  # Check if source exists
+  if [ ! -e "${source}" ]; then
+    warning "Source ${source} does not exist. Skipping."
+    return
+  fi
 
-  elif [ -d "${dest}" ]; then
-    # Existing dir
-    echo "Backing up existing dir: ${dest} into ${XDG_DATA_HOME}"
+  # Check if symlink already exists and points to the correct location
+  if [ -h "${dest}" ]; then
+    current_target="$(readlink "${dest}")"
+    expected_target="${source}"
+    if [ "$current_target" = "$expected_target" ]; then
+      info "Symlink ${dest} already points to correct location. Skipping."
+      return
+    else
+      echo "Removing existing symlink pointing to wrong location: ${dest}"
+      rm "${dest}"
+    fi
+  elif [ -f "${dest}" ] || [ -d "${dest}" ]; then
+    echo "Backing up existing file/dir: ${dest} into ${XDG_DATA_HOME}/backup"
     mkdir -p "${XDG_DATA_HOME}/backup" && mv "${dest}" "${XDG_DATA_HOME}/backup"
   fi
 
-  echo "Creating new symlink: ${dest}"
-  ln -s ${dotfilesDir}/${1} ${dest}
+  echo "Creating new symlink: ${dest} -> ${source}"
+  ln -s "${source}" "${dest}"
 }
+
+
+########################################
+# Git setup
+########################################
 
 setup_git() {
     defaultName=$(git config user.name)
@@ -59,39 +116,143 @@ setup_git() {
     git config -f ~/.gitconfig-local github.user "${github:-$defaultGithub}"
 }
 
+########################################
+# Shell / Zsh / Vim
+########################################
+
 link_zshrc() {
-    source_file="$DOTFILES/.zshrc"
-    destination_file="$HOME/.zshrc"
+    local source_file="$DOTFILES/.zshrc"
+    local destination_file="$HOME/.zshrc"
+    local backup_dir="$XDG_DATA_HOME/backup"
 
-    backup_dir="$XDG_DATA_HOME/backup"
+    # Check if source exists
+    if [ ! -f "$source_file" ]; then
+        warning "Source $source_file does not exist. Skipping."
+        return
+    fi
 
-    if [ -f "$destination_file" ]; then
+    # Check if symlink already exists and points to the correct location
+    if [ -h "$destination_file" ]; then
+        current_target="$(readlink "$destination_file")"
+        expected_target="$source_file"
+        if [ "$current_target" = "$expected_target" ]; then
+            info "Symlink $destination_file already points to correct location. Skipping."
+            return
+        else
+            echo "Removing existing symlink pointing to wrong location: $destination_file"
+            rm "$destination_file"
+        fi
+    elif [ -f "$destination_file" ]; then
         echo "Backing up existing ~/.zshrc to $backup_dir"
         mkdir -p "$backup_dir" && mv "$destination_file" "$backup_dir/"
     fi
 
-    # Create symlink
     echo "Creating symlink for ~/.zshrc"
     ln -s "$source_file" "$destination_file"
 }
 
 link_vim() {
-    mkdir -p $XDG_DATA_HOME/backup && [ ! -f ~/.vimrc ] || mv ~/.vimrc $XDG_DATA_HOME/backup
-    mkdir -p $XDG_DATA_HOME/backup && [ ! -f ~/.vim ] || mv ~/.vim $XDG_DATA_HOME/backup
-    ln -s $DOTFILES/.vimrc ~/
-    ln -s $DOTFILES/.vim ~/
+    local backup_dir="$XDG_DATA_HOME/backup"
+    mkdir -p "$backup_dir"
+
+    # Handle .vimrc
+    local vimrc_source="$DOTFILES/.vimrc"
+    local vimrc_dest="$HOME/.vimrc"
+    
+    if [ -f "$vimrc_source" ]; then
+        if [ -h "$vimrc_dest" ]; then
+            current_target="$(readlink "$vimrc_dest")"
+            if [ "$current_target" = "$vimrc_source" ]; then
+                info "Symlink $vimrc_dest already points to correct location. Skipping."
+            else
+                echo "Removing existing symlink pointing to wrong location: $vimrc_dest"
+                rm "$vimrc_dest"
+                echo "Creating symlink for ~/.vimrc"
+                ln -s "$vimrc_source" "$vimrc_dest"
+            fi
+        elif [ -f "$vimrc_dest" ]; then
+            echo "Backing up existing ~/.vimrc to $backup_dir"
+            mv "$vimrc_dest" "$backup_dir/"
+            echo "Creating symlink for ~/.vimrc"
+            ln -s "$vimrc_source" "$vimrc_dest"
+        else
+            echo "Creating symlink for ~/.vimrc"
+            ln -s "$vimrc_source" "$vimrc_dest"
+        fi
+    else
+        warning "Source $vimrc_source does not exist. Skipping .vimrc."
+    fi
+
+    # Handle .vim
+    local vim_source="$DOTFILES/.vim"
+    local vim_dest="$HOME/.vim"
+    
+    if [ -d "$vim_source" ]; then
+        if [ -h "$vim_dest" ]; then
+            current_target="$(readlink "$vim_dest")"
+            if [ "$current_target" = "$vim_source" ]; then
+                info "Symlink $vim_dest already points to correct location. Skipping."
+            else
+                echo "Removing existing symlink pointing to wrong location: $vim_dest"
+                rm "$vim_dest"
+                echo "Creating symlink for ~/.vim"
+                ln -s "$vim_source" "$vim_dest"
+            fi
+        elif [ -d "$vim_dest" ]; then
+            echo "Backing up existing ~/.vim to $backup_dir"
+            mv "$vim_dest" "$backup_dir/"
+            echo "Creating symlink for ~/.vim"
+            ln -s "$vim_source" "$vim_dest"
+        else
+            echo "Creating symlink for ~/.vim"
+            ln -s "$vim_source" "$vim_dest"
+        fi
+    else
+        warning "Source $vim_source does not exist. Skipping .vim."
+    fi
 }
 
 setup_shell() {
-    git clone https://github.com/ohmyzsh/ohmyzsh.git $XDG_DATA_HOME/oh-my-zsh
+    # Clone oh-my-zsh if it doesn't exist
+    if [ ! -d "$XDG_DATA_HOME/oh-my-zsh" ]; then
+        info "Cloning oh-my-zsh..."
+        git clone https://github.com/ohmyzsh/ohmyzsh.git "$XDG_DATA_HOME/oh-my-zsh"
+    else
+        info "oh-my-zsh already exists. Skipping clone."
+    fi
+
     link_zshrc
-   git clone https://github.com/zsh-users/zsh-autosuggestions ~/.local/share/oh-my-zsh/custom/plugins/zsh-autosuggestions
-   git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.local/share/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
 
-   ## catppuccin theme
-   git clone https://github.com/catppuccin/zsh-syntax-highlighting.git $XDG_DATA_HOME/catpuccin/syntax-hightlighting
+    mkdir -p "$XDG_DATA_HOME/oh-my-zsh/custom/plugins"
 
+    # Clone zsh-autosuggestions if it doesn't exist
+    if [ ! -d "$XDG_DATA_HOME/oh-my-zsh/custom/plugins/zsh-autosuggestions" ]; then
+        info "Cloning zsh-autosuggestions..."
+        git clone https://github.com/zsh-users/zsh-autosuggestions \
+          "$XDG_DATA_HOME/oh-my-zsh/custom/plugins/zsh-autosuggestions"
+    else
+        info "zsh-autosuggestions already exists. Skipping clone."
+    fi
+
+    # Clone zsh-syntax-highlighting if it doesn't exist
+    if [ ! -d "$XDG_DATA_HOME/oh-my-zsh/custom/plugins/zsh-syntax-highlighting" ]; then
+        info "Cloning zsh-syntax-highlighting..."
+        git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \
+          "$XDG_DATA_HOME/oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+    else
+        info "zsh-syntax-highlighting already exists. Skipping clone."
+    fi
+
+    # catppuccin syntax highlighting theme
+    if [ ! -d "$XDG_DATA_HOME/catpuccin/syntax-hightlighting" ]; then
+        info "Cloning catppuccin syntax highlighting..."
+        git clone https://github.com/catppuccin/zsh-syntax-highlighting.git \
+          "$XDG_DATA_HOME/catpuccin/syntax-hightlighting"
+    else
+        info "catppuccin syntax highlighting already exists. Skipping clone."
+    fi
 }
+
 
 setup_macos() {
     title "Configuring macOS"
@@ -100,7 +261,7 @@ setup_macos() {
         echo "Finder: show all filename extensions"
         defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 
-        echo "shw hidden files by default"
+        echo "show hidden files by default"
         defaults write com.apple.Finder AppleShowAllFiles -bool false
 
         echo "only use UTF-8 in Terminal.app"
@@ -112,7 +273,7 @@ setup_macos() {
         echo "show the ~/Library folder in Finder"
         chflags nohidden ~/Library
 
-        echo "Enable full keyboard access for all controls (e.g. enable Tab in modal dialogs)"
+        echo "Enable full keyboard access for all controls"
         defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 
         echo "Enable subpixel font rendering on non-Apple LCDs"
@@ -127,8 +288,8 @@ setup_macos() {
         echo "Show Status bar in Finder"
         defaults write com.apple.finder ShowStatusBar -bool true
 
-	    echo "Set standard finder view to list"
-	    defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+        echo "Set standard finder view to list"
+        defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
 
         echo "Set a blazingly fast keyboard repeat rate"
         defaults write NSGlobalDomain KeyRepeat -int 1
@@ -137,27 +298,40 @@ setup_macos() {
         defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
         echo "Kill affected applications"
-
-        for app in Safari Finder Dock Mail SystemUIServer; do killall "$app" >/dev/null 2>&1; done
+        for app in Safari Finder Dock Mail SystemUIServer; do
+          killall "$app" >/dev/null 2>&1 || true
+        done
     else
         warning "macOS not detected. Skipping."
     fi
 }
 
+########################################
+# Homebrew
+########################################
+
 setup_homebrew() {
-    if test ! "$(command -v brew)"; then
+    if ! command -v brew >/dev/null 2>&1; then
         info "Homebrew not installed. Installing."
-        # Run as a login shell (non-interactive) so that the script doesn't pause for user input
-        curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh | bash --login
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
 
     if [ "$(uname)" == "Linux" ]; then
-	echo "This is linux, TODO"
+        echo "This is linux, TODO"
     fi
 
-    # install brew dependencies from Brewfile
-    brew bundle
+    if [ -f "$DOTFILES/Brewfile" ]; then
+        info "Brewfile found. Running brew bundle."
+        brew bundle --file="$DOTFILES/Brewfile"
+    else
+        info "No Brewfile found, skipping brew bundle."
+    fi
+
 }
+
+########################################
+# Entry point / CLI
+########################################
 
 case "$1" in
     shell)
@@ -167,24 +341,24 @@ case "$1" in
         setup_macos
         ;;
     homebrew)
-	      setup_homebrew
-	      ;;
+        setup_homebrew
+        ;;
     link)
-	      link_config_files
-	      ;;
+        link_config_files
+        ;;
     git)
-      setup_git
+        setup_git
         ;;
     all-mac)
+        setup_homebrew
         setup_shell
         setup_macos
         link_vim
         link_config_files
         ;;
     *)
-        echo -e $"\nUsage: $(basename "$0") {backup|link|git|homebrew|shell|terminfo|macos|all}\n"
+        echo -e "\nUsage: $(basename "$0") {link|git|homebrew|shell|macos|all-mac}\n"
         exit 1
         ;;
 esac
-
 
