@@ -1,33 +1,11 @@
 #!/usr/bin/env bash
 
 ########################################
-# Repo bootstrap (clone dotfiles)
+# Dotfiles directory
 ########################################
 
-REPO_URL="git@github.com:bndcts/dotfiles.git"
-
-# Get the directory where the script is executed (current working directory)
-EXEC_DIR="$(pwd)"
-
-# Default DOTFILES = directory of this script (works if you run it from inside the repo)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES="$SCRIPT_DIR"
-
-# If this script is NOT inside a git repo but REPO_URL is set, clone your dotfiles
-if [ ! -d "$DOTFILES/.git" ] && [ -n "$REPO_URL" ]; then
-  echo "[INFO] No git repo detected at ${DOTFILES}."
-  CLONE_DIR="$EXEC_DIR/dotfiles"
-  if [ -d "$CLONE_DIR/.git" ]; then
-    echo "[INFO] Found existing dotfiles repo at ${CLONE_DIR}, using that."
-    DOTFILES="$CLONE_DIR"
-  else
-    echo "[INFO] Cloning dotfiles repo from ${REPO_URL} into ${CLONE_DIR}..."
-    git clone "$REPO_URL" "$CLONE_DIR"
-    DOTFILES="$CLONE_DIR"
-  fi
-fi
-
-echo "[INFO] Using DOTFILES directory: ${DOTFILES}"
+# DOTFILES = directory of this script (assumes script is run from within the cloned repo)
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 ########################################
 # XDG paths

@@ -6,7 +6,7 @@ if OS.mac?
 
     # Applications
     cask "imageoptim" # a tool to optimize images
-    cask "wezterm"
+    cask "ghostty"
 end
 
 tap "homebrew/bundle"
